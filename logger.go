@@ -84,6 +84,9 @@ func (logger *Logger) newEntry() *Entry {
 }
 
 func (logger *Logger) releaseEntry(entry *Entry) {
+	if len(entry.Data) > 0 {
+		entry.Data = make(Fields, 5)
+	}
 	logger.entryPool.Put(entry)
 }
 
