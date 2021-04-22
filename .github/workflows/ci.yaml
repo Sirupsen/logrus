@@ -9,6 +9,13 @@ on:
       - master
 
 jobs:
+  test_docker:
+    name: testing stuffs
+    runs-on: ubuntu-latest
+    container: golang:1.16
+    steps:
+      - name: do something from docker
+        run: go version
 
   lint:
     name: Golang-CI Lint
