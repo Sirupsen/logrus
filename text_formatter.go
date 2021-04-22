@@ -95,6 +95,12 @@ type TextFormatter struct {
 	// corresponding key will be removed from fields.
 	CallerPrettyfier func(*runtime.Frame) (function string, file string)
 
+	// HideCustomFields allows to hide custom fields from output and
+	// only display built-in ones. This can be useful if you're passing
+	// fields just for middlewares, for example if you want to send them
+	// to your log-collecting service without displaying them.
+	HideCustomFields bool
+
 	terminalInitOnce sync.Once
 
 	// The max length of the level text, generated dynamically on init
@@ -173,17 +179,23 @@ func (f *TextFormatter) Format(entry *Entry) ([]byte, error) {
 	if !f.DisableSorting {
 		if f.SortingFunc == nil {
 			sort.Strings(keys)
-			fixedKeys = append(fixedKeys, keys...)
+			if !f.HideCustomFields {
+				fixedKeys = append(fixedKeys, keys...)
+			}
 		} else {
 			if !f.isColored() {
-				fixedKeys = append(fixedKeys, keys...)
+				if !f.HideCustomFields {
+					fixedKeys = append(fixedKeys, keys...)
+				}
 				f.SortingFunc(fixedKeys)
 			} else {
 				f.SortingFunc(keys)
 			}
 		}
 	} else {
-		fixedKeys = append(fixedKeys, keys...)
+		if !f.HideCustomFields {
+			fixedKeys = append(fixedKeys, keys...)
+		}
 	}
 
 	var b *bytes.Buffer
@@ -288,10 +300,12 @@ func (f *TextFormatter) printColored(b *bytes.Buffer, entry *Entry, keys []strin
 	default:
 		fmt.Fprintf(b, "\x1b[%dm%s\x1b[0m[%s]%s %-44s ", levelColor, levelText, entry.Time.Format(timestampFormat), caller, entry.Message)
 	}
-	for _, k := range keys {
-		v := data[k]
-		fmt.Fprintf(b, " \x1b[%dm%s\x1b[0m=", levelColor, k)
-		f.appendValue(b, v)
+	if !f.HideCustomFields {
+		for _, k := range keys {
+			v := data[k]
+			fmt.Fprintf(b, " \x1b[%dm%s\x1b[0m=", levelColor, k)
+			f.appendValue(b, v)
+		}
 	}
 }
 
