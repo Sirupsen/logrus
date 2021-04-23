@@ -169,7 +169,7 @@ func TestDisableLevelTruncation(t *testing.T) {
 		tf := &TextFormatter{DisableLevelTruncation: disabled}
 		var b bytes.Buffer
 		entry.Level = level
-		tf.printColored(&b, entry, keys, nil, timestampFormat)
+		tf.printer(&b, entry, keys, nil, timestampFormat)
 		logLine := (&b).String()
 		if disabled {
 			expected := strings.ToUpper(level.String())
@@ -260,9 +260,9 @@ func TestPadLevelText(t *testing.T) {
 			// all the other arguments are the same. We also initialize them so that they
 			// fill in the value of levelTextMaxLength.
 			tfDefault.init(&Entry{})
-			tfDefault.printColored(&bytesDefault, &Entry{Level: val.level}, []string{}, nil, "")
+			tfDefault.printer(&bytesDefault, &Entry{Level: val.level}, []string{}, nil, "")
 			tfWithPadding.init(&Entry{})
-			tfWithPadding.printColored(&bytesWithPadding, &Entry{Level: val.level}, []string{}, nil, "")
+			tfWithPadding.printer(&bytesWithPadding, &Entry{Level: val.level}, []string{}, nil, "")
 
 			// turn the bytes back into a string so that we can actually work with the data
 			logLineDefault := (&bytesDefault).String()
