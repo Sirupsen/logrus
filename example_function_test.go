@@ -1,15 +1,18 @@
 package logrus_test
 
 import (
+	"bytes"
 	"testing"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestLogger_LogFn(t *testing.T) {
-	log.SetFormatter(&log.JSONFormatter{})
-	log.SetLevel(log.WarnLevel)
+	log := logrus.New()
+	log.Out = &bytes.Buffer{}
+	log.SetFormatter(&logrus.JSONFormatter{})
+	log.SetLevel(logrus.WarnLevel)
 
 	notCalled := 0
 	log.InfoFn(func() []interface{} {

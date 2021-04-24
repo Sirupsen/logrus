@@ -1,6 +1,7 @@
 package logrus
 
 import (
+	"bytes"
 	"fmt"
 	"testing"
 	"time"
@@ -81,6 +82,7 @@ func BenchmarkLargeJSONFormatter(b *testing.B) {
 
 func doBenchmark(b *testing.B, formatter Formatter, fields Fields) {
 	logger := New()
+	logger.Out = &bytes.Buffer{}
 
 	entry := &Entry{
 		Time:    time.Time{},

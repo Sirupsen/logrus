@@ -3,7 +3,6 @@ package logrus
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -19,7 +18,6 @@ func TestFieldValueError(t *testing.T) {
 		Level:     DebugLevel,
 	}
 	l.WithField("func", func() {}).Info("test")
-	fmt.Println(buf.String())
 	var data map[string]interface{}
 	if err := json.Unmarshal(buf.Bytes(), &data); err != nil {
 		t.Error("unexpected error", err)
@@ -37,7 +35,6 @@ func TestNoFieldValueError(t *testing.T) {
 		Level:     DebugLevel,
 	}
 	l.WithField("str", "str").Info("test")
-	fmt.Println(buf.String())
 	var data map[string]interface{}
 	if err := json.Unmarshal(buf.Bytes(), &data); err != nil {
 		t.Error("unexpected error", err)

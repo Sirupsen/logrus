@@ -1,6 +1,7 @@
 package test
 
 import (
+	"bytes"
 	"math/rand"
 	"sync"
 	"testing"
@@ -33,6 +34,7 @@ func TestAllHooks(t *testing.T) {
 
 	hook = NewGlobal()
 
+	logrus.SetOutput(&bytes.Buffer{})
 	logrus.Error("Hello error")
 	assert.Equal(logrus.ErrorLevel, hook.LastEntry().Level)
 	assert.Equal("Hello error", hook.LastEntry().Message)
