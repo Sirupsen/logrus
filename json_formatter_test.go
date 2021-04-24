@@ -234,6 +234,33 @@ func TestJSONMessageKey(t *testing.T) {
 	}
 }
 
+func TestLogLevelMap(t *testing.T) {
+	formatter := &JSONFormatter{
+		LogLevelMap: LogLevelMap{
+			WarnLevel: "WARNING",
+		},
+	}
+
+	b, err := formatter.Format(&Entry{Message: "oh hai", Level: WarnLevel})
+	if err != nil {
+		t.Fatal("Unable to format entry: ", err)
+	}
+	s := string(b)
+	if !(strings.Contains(s, "WARNING")) {
+		t.Fatal("Expected to override log level field value")
+	}
+
+	entry := make(map[string]interface{})
+	err = json.Unmarshal(b, &entry)
+	if err != nil {
+		t.Fatal("Unable to unmarshal formatted entry: ", err)
+	}
+
+	if entry["level"] != "WARNING" {
+		t.Fatal("level field not set correctly")
+	}
+}
+
 func TestJSONLevelKey(t *testing.T) {
 	formatter := &JSONFormatter{
 		FieldMap: FieldMap{

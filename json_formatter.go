@@ -20,6 +20,17 @@ func (f FieldMap) resolve(key fieldKey) string {
 	return string(key)
 }
 
+// LogLevel map allows customization of the values used to describe log levels
+type LogLevelMap map[Level]string
+
+func (l LogLevelMap) resolve(key Level) string {
+	if k, ok := l[key]; ok {
+		return k
+	}
+
+	return key.String()
+}
+
 // JSONFormatter formats logs into parsable json
 type JSONFormatter struct {
 	// TimestampFormat sets the format used for marshaling timestamps.
@@ -48,6 +59,21 @@ type JSONFormatter struct {
 	//    },
 	// }
 	FieldMap FieldMap
+
+	// LogLevelMap allows users to customize the values used for the various log levels
+	// As an example:
+	// formatter := &JSONFormatter{
+	//   	LogLevelMap: LogLevelMap{
+	// 		 PanicLevel:  1,
+	// 		 FatalLevel:  2,
+	// 		 ErrorLevel:  3,
+	// 		 WarnLevel:   4,
+	// 		 InfoLevel:   5,
+	// 		 DebugLevel:  6,
+	// 		 TraceLevel:  7,
+	//    },
+	// }
+	LogLevelMap LogLevelMap
 
 	// CallerPrettyfier can be set by the user to modify the content
 	// of the function and file keys in the json data when ReportCaller is
@@ -93,7 +119,7 @@ func (f *JSONFormatter) Format(entry *Entry) ([]byte, error) {
 		data[f.FieldMap.resolve(FieldKeyTime)] = entry.Time.Format(timestampFormat)
 	}
 	data[f.FieldMap.resolve(FieldKeyMsg)] = entry.Message
-	data[f.FieldMap.resolve(FieldKeyLevel)] = entry.Level.String()
+	data[f.FieldMap.resolve(FieldKeyLevel)] = f.LogLevelMap.resolve(entry.Level)
 	if entry.HasCaller() {
 		funcVal := entry.Caller.Function
 		fileVal := fmt.Sprintf("%s:%d", entry.Caller.File, entry.Caller.Line)
