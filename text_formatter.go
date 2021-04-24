@@ -331,9 +331,30 @@ func (f *TextFormatter) appendValue(b *bytes.Buffer, value interface{}) {
 		stringVal = fmt.Sprint(value)
 	}
 
+	var ca ColorApplicator = ApplicatorFunc(func(s string) string { return s })
+	if c, ok := value.(Colorizer); ok {
+		ca = c.Color()
+	}
+
 	if !f.needsQuoting(stringVal) {
-		b.WriteString(stringVal)
+		b.WriteString(ca.Apply(stringVal))
 	} else {
-		b.WriteString(fmt.Sprintf("%q", stringVal))
+		b.WriteString(ca.Apply(fmt.Sprintf("%q", stringVal)))
 	}
 }
+
+// ColorApplicator applies colors to a string
+type ColorApplicator interface {
+	Apply(string) string
+}
+
+// Colorizer provides a colorized string-representation of the concrete data structure.
+type Colorizer interface {
+	Color() ColorApplicator
+}
+
+// ApplicatorFunc turns a function into a ColorApplicator
+type ApplicatorFunc func(string) string
+
+// Apply color
+func (f ApplicatorFunc) Apply(s string) string { return f(s) }
