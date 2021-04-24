@@ -47,14 +47,52 @@ func (entry *Entry) WriterLevel(level Level) *io.PipeWriter {
 	default:
 		printFunc = entry.Print
 	}
+	done := make(chan struct{})
 
-	go entry.writerScanner(reader, printFunc)
+	go entry.writerScanner(reader, printFunc, done)
 	runtime.SetFinalizer(writer, writerFinalizer)
 
 	return writer
 }
 
-func (entry *Entry) writerScanner(reader *io.PipeReader, printFunc func(args ...interface{})) {
+func (entry *Entry) WriterLevelWithClose(level Level) (*io.PipeWriter, func()) {
+	reader, writer := io.Pipe()
+
+	var printFunc func(args ...interface{})
+
+	switch level {
+	case TraceLevel:
+		printFunc = entry.Trace
+	case DebugLevel:
+		printFunc = entry.Debug
+	case InfoLevel:
+		printFunc = entry.Info
+	case WarnLevel:
+		printFunc = entry.Warn
+	case ErrorLevel:
+		printFunc = entry.Error
+	case FatalLevel:
+		printFunc = entry.Fatal
+	case PanicLevel:
+		printFunc = entry.Panic
+	default:
+		printFunc = entry.Print
+	}
+
+	done := make(chan struct{})
+
+	go entry.writerScanner(reader, printFunc, done)
+	runtime.SetFinalizer(writer, writerFinalizer)
+
+	closeFunc := func() {
+		writer.Close()
+		<-done
+	}
+
+	return writer, closeFunc
+}
+
+func (entry *Entry) writerScanner(reader *io.PipeReader, printFunc func(args ...interface{}), done chan struct{}) {
 	scanner := bufio.NewScanner(reader)
 	for scanner.Scan() {
 		printFunc(scanner.Text())
@@ -63,6 +101,7 @@ func (entry *Entry) writerScanner(reader *io.PipeReader, printFunc func(args ...
 		entry.Errorf("Error while reading from Writer: %s", err)
 	}
 	reader.Close()
+	close(done)
 }
 
 func writerFinalizer(writer *io.PipeWriter) {
