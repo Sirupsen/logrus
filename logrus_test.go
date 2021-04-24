@@ -664,14 +664,23 @@ func TestLogrusInterfaces(t *testing.T) {
 		b := l.WithField("key", "value")
 		b.Debug("Test")
 	}
+
+	fn2 := func(xl Ext2FieldLogger) {
+		var l FieldLogger = xl
+		b := l.WithField("key", "value")
+		b.Debug("Test")
+	}
+
 	// test logger
 	logger := New()
 	logger.Out = &buffer
 	fn(logger)
+	fn2(logger)
 
 	// test Entry
 	e := logger.WithField("another", "value")
 	fn(e)
+	fn2(e)
 }
 
 // Implements io.Writer using channels for synchronization, so we can wait on

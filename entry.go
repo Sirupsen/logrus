@@ -296,6 +296,14 @@ func (entry *Entry) write() {
 	}
 }
 
+func (entry *Entry) SetLevel(level Level) {
+	entry.Logger.SetLevel(level)
+}
+
+func (entry *Entry) IsLevelEnabled(level Level) bool {
+	return entry.Logger.IsLevelEnabled(level)
+}
+
 func (entry *Entry) Log(level Level, args ...interface{}) {
 	if entry.Logger.IsLevelEnabled(level) {
 		entry.log(level, fmt.Sprint(args...))

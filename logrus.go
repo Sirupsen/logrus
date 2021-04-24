@@ -176,6 +176,12 @@ type FieldLogger interface {
 	// IsPanicEnabled() bool
 }
 
+type Ext2FieldLogger interface {
+	FieldLogger
+	SetLevel(level Level)
+	IsLevelEnabled(level Level) bool
+}
+
 // Ext1FieldLogger (the first extension to FieldLogger) is superfluous, it is
 // here for consistancy. Do not use. Use Logger or Entry instead.
 type Ext1FieldLogger interface {
