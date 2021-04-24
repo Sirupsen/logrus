@@ -77,7 +77,7 @@ func (level Level) MarshalText() ([]byte, error) {
 	return nil, fmt.Errorf("not a valid logrus level %d", level)
 }
 
-// A constant exposing all logging levels
+// AllLevels constant exposing all logging levels
 var AllLevels = []Level{
 	PanicLevel,
 	FatalLevel,
@@ -116,57 +116,82 @@ var (
 	_ StdLogger = &log.Logger{}
 	_ StdLogger = &Entry{}
 	_ StdLogger = &Logger{}
+
+	_ FieldLogger = &Entry{}
+	_ FieldLogger = &Logger{}
 )
 
 // StdLogger is what your logrus-enabled library should take, that way
 // it'll accept a stdlib logger and a logrus logger. There's no standard
 // interface, this is the closest we get, unfortunately.
 type StdLogger interface {
-	Print(...interface{})
-	Printf(string, ...interface{})
-	Println(...interface{})
+	PrintLogger
+	FatalLogger
+	PanicLogger
+}
 
-	Fatal(...interface{})
-	Fatalf(string, ...interface{})
-	Fatalln(...interface{})
-
+type PanicLogger interface {
 	Panic(...interface{})
 	Panicf(string, ...interface{})
 	Panicln(...interface{})
 }
 
-// The FieldLogger interface generalizes the Entry and Logger types
-type FieldLogger interface {
+type PrintLogger interface {
+	Print(...interface{})
+	Printf(string, ...interface{})
+	Println(...interface{})
+}
+type FatalLogger interface {
+	Fatal(...interface{})
+	Fatalf(string, ...interface{})
+	Fatalln(...interface{})
+}
+
+type WithFieldLogger interface {
 	WithField(key string, value interface{}) *Entry
 	WithFields(fields Fields) *Entry
 	WithError(err error) *Entry
+}
 
+type DebugLogger interface {
 	Debugf(format string, args ...interface{})
-	Infof(format string, args ...interface{})
-	Printf(format string, args ...interface{})
-	Warnf(format string, args ...interface{})
-	Warningf(format string, args ...interface{})
-	Errorf(format string, args ...interface{})
-	Fatalf(format string, args ...interface{})
-	Panicf(format string, args ...interface{})
-
 	Debug(args ...interface{})
-	Info(args ...interface{})
-	Print(args ...interface{})
-	Warn(args ...interface{})
-	Warning(args ...interface{})
-	Error(args ...interface{})
-	Fatal(args ...interface{})
-	Panic(args ...interface{})
-
 	Debugln(args ...interface{})
+}
+
+type InfoLogger interface {
+	Infof(format string, args ...interface{})
+	Info(args ...interface{})
 	Infoln(args ...interface{})
-	Println(args ...interface{})
+}
+
+type WarnLogger interface {
+	Warnf(format string, args ...interface{})
+	Warn(args ...interface{})
 	Warnln(args ...interface{})
+}
+
+type WarningLogger interface {
+	Warningf(format string, args ...interface{})
+	Warning(args ...interface{})
 	Warningln(args ...interface{})
+}
+
+type ErrorLogger interface {
+	Errorf(format string, args ...interface{})
+	Error(args ...interface{})
 	Errorln(args ...interface{})
-	Fatalln(args ...interface{})
-	Panicln(args ...interface{})
+}
+
+// The FieldLogger interface generalizes the Entry and Logger types
+type FieldLogger interface {
+	StdLogger
+	WithFieldLogger
+	DebugLogger
+	InfoLogger
+	WarnLogger
+	WarningLogger
+	ErrorLogger
 
 	// IsDebugEnabled() bool
 	// IsInfoEnabled() bool
@@ -176,11 +201,15 @@ type FieldLogger interface {
 	// IsPanicEnabled() bool
 }
 
+type TraceLogger interface {
+	Tracef(format string, args ...interface{})
+	Trace(args ...interface{})
+	Traceln(args ...interface{})
+}
+
 // Ext1FieldLogger (the first extension to FieldLogger) is superfluous, it is
 // here for consistancy. Do not use. Use Logger or Entry instead.
 type Ext1FieldLogger interface {
 	FieldLogger
-	Tracef(format string, args ...interface{})
-	Trace(args ...interface{})
-	Traceln(args ...interface{})
+	TraceLogger
 }
