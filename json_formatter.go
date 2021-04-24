@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"runtime"
 )
 
@@ -64,6 +65,8 @@ func (f *JSONFormatter) Format(entry *Entry) ([]byte, error) {
 	data := make(Fields, len(entry.Data)+4)
 	for k, v := range entry.Data {
 		switch v := v.(type) {
+		case *http.Request:
+			data[k] = formatHTTPRequest(v)
 		case error:
 			// Otherwise errors are ignored by `encoding/json`
 			// https://github.com/sirupsen/logrus/issues/137

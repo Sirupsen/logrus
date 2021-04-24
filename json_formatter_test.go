@@ -1,9 +1,11 @@
 package logrus
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"runtime"
 	"strings"
 	"testing"
@@ -368,5 +370,16 @@ func TestJSONEnableHTMLEscape(t *testing.T) {
 	s := string(b)
 	if !(strings.Contains(s, "u0026") && strings.Contains(s, "u003e") && strings.Contains(s, "u003c")) {
 		t.Error("Message should be HTML escaped", s)
+	}
+}
+
+func TestJSONHttpRequest(t *testing.T) {
+	formatter := &JSONFormatter{}
+
+	req, _ := http.NewRequestWithContext(context.TODO(), "POST", "http://127.0.0.1?test=value", nil)
+
+	_, err := formatter.Format(WithField("request", req))
+	if err != nil {
+		t.Fatal("Unable to format entry: ", err)
 	}
 }
