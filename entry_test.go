@@ -276,3 +276,17 @@ func TestEntryReportCallerRace(t *testing.T) {
 		entry.Info("should not race")
 	}()
 }
+
+func TestEntryWithHardcodedField(t *testing.T) {
+	out := new(bytes.Buffer)
+
+	l := New()
+	l.SetOutput(out)
+
+	l.WithFields(Fields{
+		"animal":  "walrus",
+		"stu\xff": "test\"\xff\xff\xff\xff\x30\x00\x00\x00\x00test\xee\x81\x9a",
+	}).Info("A bug\nwas verified")
+	assert.Contains(t, out.String(), "animal")
+	assert.Contains(t, out.String(), `stu\xff`)
+}
