@@ -165,7 +165,7 @@ func (f *TextFormatter) Format(entry *Entry) ([]byte, error) {
 		if funcVal != "" {
 			fixedKeys = append(fixedKeys, f.FieldMap.resolve(FieldKeyFunc))
 		}
-		if fileVal != "" {
+		if fileVal != ":0" {
 			fixedKeys = append(fixedKeys, f.FieldMap.resolve(FieldKeyFile))
 		}
 	}

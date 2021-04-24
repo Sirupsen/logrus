@@ -103,7 +103,7 @@ func (f *JSONFormatter) Format(entry *Entry) ([]byte, error) {
 		if funcVal != "" {
 			data[f.FieldMap.resolve(FieldKeyFunc)] = funcVal
 		}
-		if fileVal != "" {
+		if fileVal != ":0" {
 			data[f.FieldMap.resolve(FieldKeyFile)] = fileVal
 		}
 	}
