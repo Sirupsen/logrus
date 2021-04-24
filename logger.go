@@ -360,6 +360,16 @@ func (logger *Logger) SetLevel(level Level) {
 	atomic.StoreUint32((*uint32)(&logger.Level), uint32(level))
 }
 
+
+func (logger *Logger) Lock() {
+	logger.mu.Lock()
+}
+
+func (logger *Logger) Unlock() {
+	logger.mu.Unlock()
+}
+
+
 // GetLevel returns the logger level.
 func (logger *Logger) GetLevel() Level {
 	return logger.level()
