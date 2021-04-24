@@ -99,6 +99,9 @@ type TextFormatter struct {
 
 	// The max length of the level text, generated dynamically on init
 	levelTextMaxLength int
+
+	// Disable show time, level, msg key name
+	DisableKnownKeyName bool
 }
 
 func (f *TextFormatter) init(entry *Entry) {
@@ -175,7 +178,7 @@ func (f *TextFormatter) Format(entry *Entry) ([]byte, error) {
 			sort.Strings(keys)
 			fixedKeys = append(fixedKeys, keys...)
 		} else {
-			if !f.isColored() {
+			if !f.isColored() && !f.DisableKnownKeyName {
 				fixedKeys = append(fixedKeys, keys...)
 				f.SortingFunc(fixedKeys)
 			} else {
@@ -201,6 +204,8 @@ func (f *TextFormatter) Format(entry *Entry) ([]byte, error) {
 	}
 	if f.isColored() {
 		f.printColored(b, entry, keys, data, timestampFormat)
+	} else if f.DisableKnownKeyName {
+		f.printDisableKnownKeyName(b, entry, keys, data, timestampFormat)
 	} else {
 
 		for _, key := range fixedKeys {
@@ -291,6 +296,58 @@ func (f *TextFormatter) printColored(b *bytes.Buffer, entry *Entry, keys []strin
 	for _, k := range keys {
 		v := data[k]
 		fmt.Fprintf(b, " \x1b[%dm%s\x1b[0m=", levelColor, k)
+		f.appendValue(b, v)
+	}
+}
+
+func (f *TextFormatter) printDisableKnownKeyName(b *bytes.Buffer, entry *Entry, keys []string, data Fields, timestampFormat string) {
+	levelText := strings.ToUpper(entry.Level.String())
+	if !f.DisableLevelTruncation && !f.PadLevelText {
+		levelText = levelText[0:4]
+	}
+	if f.PadLevelText {
+		// Generates the format string used in the next line, for example "%-6s" or "%-7s".
+		// Based on the max level text length.
+		formatString := "%-" + strconv.Itoa(f.levelTextMaxLength) + "s"
+		// Formats the level text by appending spaces up to the max length, for example:
+		// 	- "INFO   "
+		//	- "WARNING"
+		levelText = fmt.Sprintf(formatString, levelText)
+	}
+
+	// Remove a single newline if it already exists in the message to keep
+	// the behavior of logrus text_formatter the same as the stdlib log package
+	entry.Message = strings.TrimSuffix(entry.Message, "\n")
+
+	caller := ""
+	if entry.HasCaller() {
+		funcVal := fmt.Sprintf("%s()", entry.Caller.Function)
+		fileVal := fmt.Sprintf("%s:%d", entry.Caller.File, entry.Caller.Line)
+
+		if f.CallerPrettyfier != nil {
+			funcVal, fileVal = f.CallerPrettyfier(entry.Caller)
+		}
+
+		if fileVal == "" {
+			caller = funcVal
+		} else if funcVal == "" {
+			caller = fileVal
+		} else {
+			caller = fileVal + " " + funcVal
+		}
+	}
+
+	switch {
+	case f.DisableTimestamp:
+		fmt.Fprintf(b, "%s%s %-44s ", levelText, caller, entry.Message)
+	case !f.FullTimestamp:
+		fmt.Fprintf(b, "%s[%04d]%s %-44s ", levelText, int(entry.Time.Sub(baseTimestamp)/time.Second), caller, entry.Message)
+	default:
+		fmt.Fprintf(b, "%s[%s]%s %-44s ", levelText, entry.Time.Format(timestampFormat), caller, entry.Message)
+	}
+	for _, k := range keys {
+		v := data[k]
+		fmt.Fprintf(b, " %s=", k)
 		f.appendValue(b, v)
 	}
 }
