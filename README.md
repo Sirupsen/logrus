@@ -75,10 +75,10 @@ time="2015-03-26T01:27:38-04:00" level=fatal msg="The ice breaks!" err=&{0x20822
 To ensure this behaviour even if a TTY is attached, set your formatter as follows:
 
 ```go
-	log.SetFormatter(&log.TextFormatter{
-		DisableColors: true,
-		FullTimestamp: true,
-	})
+log.SetFormatter(&log.TextFormatter{
+  DisableColors: true,
+  FullTimestamp: true,
+})
 ```
 
 #### Logging Method Name
