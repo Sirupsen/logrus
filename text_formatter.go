@@ -34,6 +34,10 @@ type TextFormatter struct {
 	// Force disabling colors.
 	DisableColors bool
 
+	// try GoString() for field representation: if that works,
+	// don't quote the field at all, just print the result.
+	UseGoString bool
+
 	// Force quoting of all values
 	ForceQuote bool
 
@@ -326,6 +330,13 @@ func (f *TextFormatter) appendKeyValue(b *bytes.Buffer, key string, value interf
 }
 
 func (f *TextFormatter) appendValue(b *bytes.Buffer, value interface{}) {
+	if f.UseGoString {
+		stringer, ok := value.(fmt.GoStringer)
+		if ok {
+			b.WriteString(stringer.GoString())
+			return
+		}
+	}
 	stringVal, ok := value.(string)
 	if !ok {
 		stringVal = fmt.Sprint(value)
