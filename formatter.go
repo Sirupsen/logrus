@@ -69,10 +69,12 @@ func prefixFieldClashes(data Fields, fieldMap FieldMap, reportCaller bool) {
 		funcKey := fieldMap.resolve(FieldKeyFunc)
 		if l, ok := data[funcKey]; ok {
 			data["fields."+funcKey] = l
+			delete(data, funcKey)
 		}
 		fileKey := fieldMap.resolve(FieldKeyFile)
 		if l, ok := data[fileKey]; ok {
 			data["fields."+fileKey] = l
+			delete(data, fileKey)
 		}
 	}
 }

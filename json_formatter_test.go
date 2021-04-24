@@ -268,7 +268,7 @@ func TestJSONTimeKey(t *testing.T) {
 	}
 }
 
-func TestFieldDoesNotClashWithCaller(t *testing.T) {
+func TestJSONFieldDoesNotClashWithCaller(t *testing.T) {
 	SetReportCaller(false)
 	formatter := &JSONFormatter{}
 
@@ -288,8 +288,10 @@ func TestFieldDoesNotClashWithCaller(t *testing.T) {
 	}
 }
 
-func TestFieldClashWithCaller(t *testing.T) {
+func TestJSONFieldClashWithCaller(t *testing.T) {
 	SetReportCaller(true)
+	defer SetReportCaller(false)
+
 	formatter := &JSONFormatter{}
 	e := WithField("func", "howdy pardner")
 	e.Caller = &runtime.Frame{Function: "somefunc"}
@@ -313,8 +315,6 @@ func TestFieldClashWithCaller(t *testing.T) {
 		t.Fatalf("func not set as expected when ReportCaller=true (got '%s')",
 			entry["func"])
 	}
-
-	SetReportCaller(false) // return to default value
 }
 
 func TestJSONDisableTimestamp(t *testing.T) {

@@ -598,3 +598,74 @@ func TestCustomSorting(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, strings.HasPrefix(string(b), "prefix="), "format output is %q", string(b))
 }
+
+func TestTextFieldClashWithCaller(t *testing.T) {
+	formatter := &TextFormatter{
+		DisableColors: true,
+	}
+
+	logger := New()
+	logger.SetReportCaller(true)
+
+	entry := &Entry{
+		Logger:  logger,
+		Caller:  &runtime.Frame{Function: "CallerFunc", File: "caller.go", Line: 42},
+		Message: "oh hi",
+		Level:   WarnLevel,
+		Time:    time.Date(1981, time.February, 24, 4, 28, 3, 100, time.UTC),
+		Data: Fields{
+			"field1":     "f1",
+			FieldKeyFunc: "CustomFunc",
+			FieldKeyFile: "custom.go",
+		},
+	}
+
+	b, err := formatter.Format(entry)
+	if err != nil {
+		t.Fatal("Unable to format entry: ", err)
+	}
+
+	assert.Equal(t,
+		FieldKeyTime+`="1981-02-24T04:28:03Z" `+
+			FieldKeyLevel+`=`+WarnLevel.String()+` `+
+			FieldKeyMsg+`="oh hi" `+
+			FieldKeyFunc+`=CallerFunc `+
+			FieldKeyFile+`="caller.go:42" `+
+			`field1=f1 `+
+			`fields.`+FieldKeyFile+`=custom.go `+
+			`fields.`+FieldKeyFunc+`=CustomFunc`+"\n",
+		string(b),
+		"Formatted output doesn't respect ReportCaller=true")
+}
+
+func TestTextFieldDoesNotClashWithCaller(t *testing.T) {
+	formatter := &TextFormatter{
+		DisableColors: true,
+	}
+
+	entry := &Entry{
+		Message: "oh hi",
+		Level:   WarnLevel,
+		Time:    time.Date(1981, time.February, 24, 4, 28, 3, 100, time.UTC),
+		Data: Fields{
+			"field1":     "f1",
+			FieldKeyFunc: "CustomFunc",
+			FieldKeyFile: "custom.go",
+		},
+	}
+
+	b, err := formatter.Format(entry)
+	if err != nil {
+		t.Fatal("Unable to format entry: ", err)
+	}
+
+	assert.Equal(t,
+		FieldKeyTime+`="1981-02-24T04:28:03Z" `+
+			FieldKeyLevel+`=`+WarnLevel.String()+` `+
+			FieldKeyMsg+`="oh hi" `+
+			`field1=f1 `+
+			FieldKeyFile+`=custom.go `+
+			FieldKeyFunc+`=CustomFunc`+"\n",
+		string(b),
+		"Formatted output doesn't respect ReportCaller=false")
+}
