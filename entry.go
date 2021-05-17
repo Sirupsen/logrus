@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"reflect"
 	"runtime"
@@ -291,7 +292,15 @@ func (entry *Entry) write() {
 	}
 	entry.Logger.mu.Lock()
 	defer entry.Logger.mu.Unlock()
-	if _, err := entry.Logger.Out.Write(serialized); err != nil {
+
+	var out io.Writer
+	if entry.Logger.LevelOut != nil && entry.Logger.LevelOut[entry.Level] != nil {
+		out = entry.Logger.LevelOut[entry.Level]
+	} else {
+		out = entry.Logger.Out
+	}
+
+	if _, err := out.Write(serialized); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to write to log, %v\n", err)
 	}
 }

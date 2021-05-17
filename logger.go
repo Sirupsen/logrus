@@ -19,6 +19,9 @@ type Logger struct {
 	// file, or leave it default which is `os.Stderr`. You can also set this to
 	// something more adventurous, such as logging to Kafka.
 	Out io.Writer
+	// LevelOut specifies writers of different log levels to help applications
+	// distribute logs of different levels to different locations.
+	LevelOut map[Level]io.Writer
 	// Hooks for the logger instance. These allow firing events based on logging
 	// levels and log entries. For example, to send errors to an error tracking
 	// service, log to StatsD or dump the core on fatal errors.
@@ -389,6 +392,16 @@ func (logger *Logger) SetOutput(output io.Writer) {
 	logger.mu.Lock()
 	defer logger.mu.Unlock()
 	logger.Out = output
+}
+
+// SetLevelOutput sets the logger level output.
+func (logger *Logger) SetLevelOutput(level Level, output io.Writer) {
+	logger.mu.Lock()
+	defer logger.mu.Unlock()
+	if logger.LevelOut == nil {
+		logger.LevelOut = make(map[Level]io.Writer)
+	}
+	logger.LevelOut[level] = output
 }
 
 func (logger *Logger) SetReportCaller(reportCaller bool) {

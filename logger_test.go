@@ -95,3 +95,15 @@ func TestLogger_SetBufferPool(t *testing.T) {
 	assert.Equal(t, pool.get, 1, "Logger.SetBufferPool(): The BufferPool.Get() must be called")
 	assert.Len(t, pool.buffers, 1, "Logger.SetBufferPool(): The BufferPool.Put() must be called")
 }
+
+func TestLogger_SetLevelOutput(t *testing.T) {
+	out := &bytes.Buffer{}
+	l := New()
+	l.SetOutput(out)
+	errOut := &bytes.Buffer{}
+	l.SetLevelOutput(ErrorLevel, errOut)
+	l.Error("test for err out")
+
+	assert.Contains(t, errOut.String(), "test for err out", "Logger.SetLevelOutput(): Logger.LevelOut no log content")
+	assert.Equal(t, out.Len(), 0, "Logger.SetLevelOutput(): Logger.Out got log content")
+}
