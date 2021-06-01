@@ -18,7 +18,7 @@ const (
 //
 // * `entry.Data["msg"]`. The message passed from Info, Warn, Error ..
 // * `entry.Data["time"]`. The timestamp.
-// * `entry.Data["level"]. The level the entry was logged at.
+// * `entry.Data["level"]`. The level the entry was logged at.
 //
 // Any additional fields added with `WithField` or `WithFields` are also in
 // `entry.Data`. Format is expected to return an array of bytes which are then
