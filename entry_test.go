@@ -269,8 +269,31 @@ func TestEntryLogfLevel(t *testing.T) {
 func TestEntryReportCallerRace(t *testing.T) {
 	logger := New()
 	entry := NewEntry(logger)
+
+	// logging before SetReportCaller has the highest chance of causing a race condition
+	// to be detected, but doing it twice just to increase the likelyhood of detecting the race
+	go func() {
+		entry.Info("should not race")
+	}()
 	go func() {
 		logger.SetReportCaller(true)
+	}()
+	go func() {
+		entry.Info("should not race")
+	}()
+}
+
+func TestEntryFormatterRace(t *testing.T) {
+	logger := New()
+	entry := NewEntry(logger)
+
+	// logging before SetReportCaller has the highest chance of causing a race condition
+	// to be detected, but doing it twice just to increase the likelyhood of detecting the race
+	go func() {
+		entry.Info("should not race")
+	}()
+	go func() {
+		logger.SetFormatter(&TextFormatter{})
 	}()
 	go func() {
 		entry.Info("should not race")
