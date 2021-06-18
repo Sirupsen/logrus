@@ -2,6 +2,7 @@ package logrus
 
 import (
 	"bytes"
+	"encoding"
 	"encoding/json"
 	"fmt"
 	"runtime"
@@ -64,6 +65,10 @@ func (f *JSONFormatter) Format(entry *Entry) ([]byte, error) {
 	data := make(Fields, len(entry.Data)+4)
 	for k, v := range entry.Data {
 		switch v := v.(type) {
+		case json.Marshaler, encoding.TextMarshaler:
+			// Let errors which implement either of these
+			// decide their JSON representation by themselves.
+			data[k] = v
 		case error:
 			// Otherwise errors are ignored by `encoding/json`
 			// https://github.com/sirupsen/logrus/issues/137
