@@ -341,7 +341,7 @@ import (
   log "github.com/sirupsen/logrus"
 )
 
-init() {
+func init() {
   // do something here to set environment depending on an environment variable
   // or command-line flag
   if Environment == "production" {
